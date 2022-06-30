@@ -5,6 +5,7 @@ import ShopPage from "./pages/shoppage/shoppage.component";
 import Header from "./copponents/header/header.component";
 
 import "./App.css";
+import SignInUpPage from "./pages/sign-in-up/sign-in-up.component";
 
 function App() {
   return (
@@ -13,6 +14,7 @@ function App() {
       <Routes>
         <Route exact path="/" element={<HomePage />} />
         <Route path="/shop" element={<ShopPage />} />
+        <Route path="/signin" element={<SignInUpPage />} />
       </Routes>
     </div>
   );
