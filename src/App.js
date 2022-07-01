@@ -1,6 +1,6 @@
 import React from "react";
 import { connect } from "react-redux";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, Navigate } from "react-router-dom";
 import HomePage from "./pages/homepage/homepage.component";
 import ShopPage from "./pages/shoppage/shoppage.component";
 import Header from "./copponents/header/header.component";
@@ -26,7 +26,7 @@ class App extends React.Component {
         });
       }
 
-      setCurrentUser({ userAuth });
+      setCurrentUser({ currentUser: userAuth });
     });
   }
 
@@ -35,21 +35,35 @@ class App extends React.Component {
   }
 
   render() {
+    console.log(this.props);
     return (
       <div>
         <Header />
         <Routes>
           <Route exact path="/" element={<HomePage />} />
           <Route path="/shop" element={<ShopPage />} />
-          <Route path="/signin" element={<SignInUpPage />} />
+          <Route
+            path="/signin"
+            render={() =>
+              this.props.currentUser ? (
+                <Navigate to="/" replace={true} />
+              ) : (
+                <SignInUpPage />
+              )
+            }
+          />
         </Routes>
       </div>
     );
   }
 }
 
+const mapStateToProps = ({ user }) => ({
+  currentUser: user.currentUser,
+});
+
 const mapDispatchToProps = (dispatch) => ({
   setCurrentUser: (user) => dispatch(setCurrentUser(user)),
 });
 
-export default connect(null, mapDispatchToProps)(App);
+export default connect(mapStateToProps, mapDispatchToProps)(App);
