@@ -1,0 +1,290 @@
+me perdor redux duhet:
+npm i redux redux-logger react-redux
+EDIT: u deshte me bo edhe kete install se sbojke ajo diqka nalt se old i guess npm install @reduxjs/toolkit
+ne index.js e bon import Privder ku i bon krejt componentet wrap me to
+
+kjo mundeson qe kur tja pasitum store krejt komponentet tjera munden mju qas store(global state)
+
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux";
+
+import "./index.css";
+import App from "./App";
+
+import store from "./redux/store";
+
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
+  <Provider store={store}>
+    <React.StrictMode>
+      <BrowserRouter>
+        <App />
+      </BrowserRouter>
+    </React.StrictMode>
+  </Provider>
+);
+
+
+
+pastaj krijojm ni folder ku e rujm redux
+folder name redux
+
+ne te e krijojm ni file 
+root-reducer.js
+ky file reprezanton krejt state-in qe perdoret ne app
+pra mban shum reducer qe permbajn STETes
+
+psh ni small reducer
+krijojm ni folder te ri mbrenda redux
+me emrin user -> me file user.reducer.jsx 
+kjo e permban ni function qe si parameter gjithmon duhet te ket state(old state qysh ka qene) dhe action (dmth ni object qe permban type:string dhe paylod:any - payload eshte zakonisht stete i ri qe u ndryshu)
+
+psh: 
+
+___________________________________________________________
+const INITIAL_STATE = {
+  currentUser: null,
+};
+
+const userReducer = (state = INITIAL_STATE, action) => {
+  switch (action.type) {
+    case "SET_CURRENT_USER":
+      return {
+        ...state,
+        currentUser: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
+
+export default userReducer;
+____________________________________________________________
+
+INITIAL_STATE - eshte state i ri global qe pe krijojm me zevendesu ni state te me parshem
+
+userReducer - eshte function i cili ka mu bo trigger saher qe dojm me ndryshu state-in
+ku perdorim action.type (pse kjo psh ne state mundemi me pas currentUser, isAdmin etj, e per  me dite me marr vleren e re prej action.payload na duhet ni switch qe me dite a me ndryshu currentUser apo isAdmin.)
+
+by default te parametri state i kemi thon nese ssi dergojm state me marr INITIAL_STATE.
+
+
+mbasi e kemi kriju nje reducer e thirrim ne root-reducer.js ku i bojm combine te gjitha reducers
+psh: 
+
+____________________________________________________
+import { combineReducers } from "redux";
+
+import userReducer from "./user/user.reducer";
+
+export default combineReducers({
+  user: userReducer,
+});
+
+_____________________________________________________
+combineReducers - na mundeson me i mbledh te gjith reducer (ku kta jan mini states ku na dihmojn mi menagju pjes pjese states)
+dhe krijon nje reducer permbledhes (nje reducer ku i permban te gjitha reducerqe i kemi kriju).
+
+next duhet me kriju nje store
+ku ne redux folderin e krijojm ni store.js
+
+psh: 
+_____________________________________________________
+import { configureStore, applyMiddleware } from "redux";
+
+import logger from "redux-logger";
+
+import rootReducer from "./root-reducer";
+
+const middlewares = [logger];
+
+const store = configureStore(rootReducer, applyMiddleware(...middlewares));
+
+export default store;
+
+
+EDIT: mbase disa errorave u desht me bo 
+import { applyMiddleware } from "redux";
+import { configureStore } from "@reduxjs/toolkit";
+
+import logger from "redux-logger";
+
+import rootReducer from "./root-reducer";
+
+const middlewares = [logger];
+
+const store = configureStore(
+  { reducer: rootReducer },
+  applyMiddleware(...middlewares)
+);
+
+export default store;
+
+____________________________________________________________
+ku const store thirr configureStore function qe ja pasitum te gjitha reducer prej rootReducer dhe middlewares.
+
+
+
+mbase gjitha ktyne duhet me kriju action functions 
+psh tek user folderi e krijojm ni file user.actions.js
+
+
+psh: 
+____________________________________________
+export const setCurrentUser = (user) => ({
+  type: "SET_CURRENT_USER",
+  payload: user,
+});
+_________________________________________________
+krejt qka bon e ktehn objektin qe e perdore reducer kit rast userReducer.
+
+
+qysh me perdor krejt kit far muhabeti:
+e bojm import komponente qe ka functions te react-redux
+import { connect } from "react-redux";
+
+pastaj na duhet me kriju 
+const mapStateToProps = (state) => ({
+  currentUser: state.user.currentUser,
+});
+
+mapStateToProps - duhet gjith qysh me baru me kete emer se qashtu e ka predefind reduxi,
+krejt qka bon kjo eshte qe shkon tek store edhe ta kthe store(dmth statein e madh)
+masi qe e kthen store (state e madh) duhet me specifiku qka te duhet 
+psh rasti jon kom kriju ni currentUser: edhe e kom marr vleren prej state.user.currentUser
+
+ku user - u kon userReducer qe e ka kthy ni currentUser (prej INITIAL_STATE ku mbrenda e ka pas currentUser)
+
+edhe e thirrim tek export default connect(mapStateToProps)(Header);
+
+dmth qikjo eshte qysh mundesh me marr vleren prej redux
+
+
+next qysh mundemi me modifiku store/ state 
+tek komponentja e cila e ka per detyr me marr/me ndryshu fleren e state e bojm prarp import
+import { connect } from "react-redux";
+edhe
+import { setCurrentUser } from "./redux/user/user.actions";
+
+importi i dyte eshte dmth ajo action qe na duhet me kthy objektin qe e kena pregati ma larte ku e permbajke ni type dhe payload.
+
+pastaj krijojm function 
+
+
+const mapDispatchToProps = (dispatch) => ({
+  setCurrentUser: (user) => dispatch(setCurrentUser(user)),
+});
+
+
+ku mapDispatchToProps  duhet me qene njejt emri se redux e ka bo qashtu 
+ku kthen ni function dispatch 
+permes tij ku na e kem kriju ni key dmth setCurrentUser: (user) <- ku kthen ni user dhe e vazhdojm/pasitim tek dispatch(setCurrentUser(user) <- ku setCurrentUser eshte action qe e kemi kriju na tek reducers.)
+
+
+fund e thirrim function mapDispatchToProps tek 
+
+export default connect(null, mapDispatchToProps)(App);
+
+ku e dergojm te parametri i dyte se te i pari e marrim vleren e tek parametri i dyte e ndryshojm vleren.
+
+fund nese kemi pas state te reactit vetem e fshijm 
+bashk me constructore dhe super.
+pastaj ku kemi perdor this.setState e thirrim action ton 
+psh: 
+
+
+          this.setState({
+            currentUser: {
+              id: snapShot.id,
+              ...snapShot.data(),
+            },
+          });
+============>
+
+          this.props.setCurrentUser({
+            id: snapShot.id,
+            ...snapShot.data(),
+          });
+
+
+psh: 
+      this.setState({ currentUser: userAuth });
+
+===========>
+kjo se ka this.props.setCurrentUser
+se e kena nda prej props me 
+    const { setCurrentUser } = this.props;
+
+
+      setCurrentUser({ userAuth });
+
+
+EXTRAS : --------
+extra psh tek user.action.js ku e kem  te switchi "SET_CURRENT_USER",
+per mos mja huq e krijom ni constatte qe e ktehn qat string 
+dmth te folder redux user e krijojm ni file me user.types.js
+
+
+export const UserActionTypes = {
+  SET_CURRENT_USER: "SET_CURRENT_USER",
+};
+
+edhe e thirrim te action edhe te reducer
+
+import { UserActionTypes } from "./user.types";
+
+export const setCurrentUser = (user) => ({
+  type: UserActionTypes.SET_CURRENT_USER,
+  payload: user,
+});
+
+import { UserActionTypes } from "./user.types";
+
+const INITIAL_STATE = {
+  currentUser: null,
+};
+
+const userReducer = (state = INITIAL_STATE, action) => {
+  switch (action.type) {
+    case UserActionTypes.SET_CURRENT_USER:
+      return {
+        ...state,
+        currentUser: action.payload,
+      };
+
+    default:
+      return state;
+  }
+};
+
+
+export default userReducer;
+
+
+
+
+tek store mka qit serializable error diqka u desht me bo
+
+const store = configureStore(
+  {
+    reducer: rootReducer,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware({
+      serializableCheck: false,
+    }),
+  },
+  applyMiddleware(...middlewares)
+);
+
+
+-----------------------------------------
+
+
+
+
+
+
+
